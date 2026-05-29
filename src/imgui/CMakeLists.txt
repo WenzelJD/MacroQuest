@@ -39,6 +39,8 @@ set(imgui_HEADERS
     "ImGuiUtils.h"
     "implot/implot.h"
     "implot/implot_internal.h"
+    "imanim/im_anim.h"
+    "imanim/im_anim_internal.h"
     "pch.h"
 )
 
@@ -75,6 +77,10 @@ set(imgui_SOURCES
     "implot/implot.cpp"
     "implot/implot_demo.cpp"
     "implot/implot_items.cpp"
+    "imanim/im_anim.cpp"
+    "imanim/im_anim_demo.cpp"
+    "imanim/im_anim_doc.cpp"
+    "imanim/im_anim_usecase.cpp"
 )
 
 source_groups("Source Files" ${imgui_SOURCES})

@@ -20,6 +20,29 @@ find_package(unofficial-argon2 REQUIRED)
 find_package(dxsdk-d3dx REQUIRED)
 
 # ---------------------------------------------------------------------
+# Fix crashpad debug/release CRT mismatch
+# ---------------------------------------------------------------------
+# The crashpad port ships a crashpadConfig.cmake that resolves its
+# mini_chromium sublibs (common/client/util/base) with a single, non
+# config-aware find_library(). That bakes the *debug* libs into every
+# configuration, leaking the debug CRT (_ITERATOR_DEBUG_LEVEL=2 / MTd) into
+# Release and producing LNK2038 mismatches against MQ2Main. Re-point the
+# crashpad interface at config-correct paths in the vcpkg install tree.
+# (Done here rather than in the port to avoid invalidating crashpad's cached
+#  ABI and forcing a full gn rebuild.)
+if(TARGET crashpad)
+    set(_crashpad_lib_rel "${CMAKE_BINARY_DIR}/vcpkg_installed/${VCPKG_TARGET_TRIPLET}/lib")
+    set(_crashpad_lib_dbg "${CMAKE_BINARY_DIR}/vcpkg_installed/${VCPKG_TARGET_TRIPLET}/debug/lib")
+    set(_crashpad_sublibs "")
+    foreach(_crashpad_l common client util base)
+        list(APPEND _crashpad_sublibs
+            "$<IF:$<CONFIG:Debug>,${_crashpad_lib_dbg}/${_crashpad_l}.lib,${_crashpad_lib_rel}/${_crashpad_l}.lib>")
+    endforeach()
+    set_target_properties(crashpad PROPERTIES
+        INTERFACE_LINK_LIBRARIES "${_crashpad_sublibs};ZLIB::ZLIB")
+endif()
+
+# ---------------------------------------------------------------------
 # Header files
 # ---------------------------------------------------------------------
 set(MQ2Main_HEADERS
@@ -86,7 +109,6 @@ set(MQ2Main_HEADERS
     "emu/EmuExtensions.h"
     "GraphicsEngine.h"
     "GraphicsResources.h"
-    "ImGuiAlphaMask.h"
     "ImGuiBackend.h"
     "ImGuiManager.h"
     "Logging.h"
