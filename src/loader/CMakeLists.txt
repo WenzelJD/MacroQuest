@@ -9,7 +9,14 @@ include("../Common.cmake")
 # ---------------------------------------------------------------------
 # vcpkg dependencies
 # ---------------------------------------------------------------------
-find_package(crashpad REQUIRED)
+# crashpad's config (crashpadConfig.cmake) does an unguarded
+# add_library(crashpad INTERFACE), so calling find_package(crashpad) a second
+# time (src/main already does) fails with "target already exists". Core targets
+# are configured before the launcher, so reuse the crashpad target src/main
+# created — which also carries the config-aware CRT fix applied there.
+if(NOT TARGET crashpad)
+    find_package(crashpad REQUIRED)
+endif()
 find_package(spdlog REQUIRED)
 find_package(wil REQUIRED)
 find_package(date REQUIRED)
@@ -97,7 +104,7 @@ target_link_libraries(MacroQuest PRIVATE
     spdlog::spdlog
     WIL::WIL
     date::date
-    curl::curl
+    CURL::libcurl
     cpr::cpr
     pe-parse::pe-parse
     protobuf::libprotobuf
@@ -113,17 +120,21 @@ target_link_libraries(MacroQuest PRIVATE imgui login routing)
 # ---------------------------------------------------------------------
 # Include directories
 # ---------------------------------------------------------------------
+# crashpad headers come from the crashpad::crashpad target. The old
+# ${VCPKG_IncludeStatic}/crashpad entry referenced a variable that no longer
+# exists (commented out in Common.cmake), so it expanded to a bogus "/crashpad".
 target_include_directories(MacroQuest PRIVATE
-    "${VCPKG_IncludeStatic}/crashpad"
     "${CMAKE_SOURCE_DIR}/include"
 )
 
 # ---------------------------------------------------------------------
 # Compiler options
 # ---------------------------------------------------------------------
+# NOTE: no /std flag here on purpose — Common.cmake (target_Common_props above)
+# sets /std:c++20 for the whole project. A per-target /std:c++17 would override
+# it (LanguageStandard wins) and break C++20 usage, as it did on other targets.
 target_compile_options(MacroQuest PRIVATE
     "$<$<CONFIG:Release>:/O2>"
-    "/std:c++17"
     "$<$<CONFIG:Release>:/Oi>"
     "$<$<CONFIG:Release>:/Gy>"
 )
@@ -131,9 +142,20 @@ target_compile_options(MacroQuest PRIVATE
 # ---------------------------------------------------------------------
 # Link libraries
 # ---------------------------------------------------------------------
+# System libraries. The original vcxproj carried these via the MSBuild
+# properties $(LoaderDependenciesDebug/Release); those are not CMake variables,
+# so they expanded to empty here and dropped the system libs. The vcpkg/project
+# libraries from that list (pe-parse, crashpad, curl, cpr, zlib, fmt, protobuf)
+# are already provided by the find_package targets linked above, so only the
+# Win32 system libs need to be restored.
 target_link_libraries(MacroQuest PRIVATE
-    "$<$<CONFIG:Debug>:${LoaderDependenciesDebug}>"
-    "$<$<CONFIG:Release>:${LoaderDependenciesRelease}>"
+    "d3d11.lib"
+    "Setupapi.lib"
+    "imm32.lib"
+    "Secur32.lib"
+    "Ws2_32.lib"
+    "Wldap32.lib"
+    "version.lib"
 )
 
 # ---------------------------------------------------------------------

@@ -21,6 +21,11 @@
 #include <vector>
 #include <chrono>
 
+// This header declares functions taking HWND (below); include windows.h so the
+// header is self-contained regardless of include order in consumers. Kept after
+// ServerPostOffice.h so asio/winsock (pulled in transitively) is included first.
+#include <windows.h>
+
 namespace mq {
 
 struct MQMessageFocusRequest;

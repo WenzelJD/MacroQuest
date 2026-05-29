@@ -23,8 +23,6 @@
 #    cmake -B build/solution -G "Visual Studio 17 2022" -A x64
 # ============================================================================
 
-# TODO: Fix the loader cmake
-
 cmake_minimum_required(VERSION 3.30)
 
 # ============================================================================
@@ -66,7 +64,7 @@ message(STATUS "Configuring for platform: ${CMAKE_GENERATOR_PLATFORM}")
 option(MQ_REGENERATE_SOLUTION "Just generate a macroquest solution file from vcxproj files" OFF)
 option(MQ_BUILD_PLUGINS "Build built-in plugins" ON)
 option(MQ_BUILD_CUSTOM_PLUGINS "Build custom plugins from plugins directory" OFF)
-option(MQ_BUILD_LAUNCHER "Build MacroQuest loader" OFF)
+option(MQ_BUILD_LAUNCHER "Build MacroQuest loader" ON)
 option(MQ_STATIC_BUILD "Change build type for core libraries to static" OFF)
 option(MQ_BUILD_TESTS "Build tests" OFF)
 option(MQ_ADD_MQ2MAIN_DEPENDENCY "Add MQ2Main as dependency to custom plugins if not present" OFF)
