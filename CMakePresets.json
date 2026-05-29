@@ -15,9 +15,9 @@
             "cacheVariables": {
                 "MQ_CUSTOM_PLUGINS_FILE": "custom_plugins.cmake"
             },
-            "environment": {
-                "VCPKG_ROOT": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\vcpkg"
-            }
+			"environment": {
+				"VCPKG_ROOT": "${sourceDir}/contrib/vcpkg"
+			}
         },
         {
             "name": "live",
